@@ -22,6 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/posts") // Maps all requests to this controller to the /api/posts path
+@CrossOrigin // Allows requests from all origins for development
 public class PostController {
 
     private final PostRepository postRepository;

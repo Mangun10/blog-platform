@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manas Gunti | Blog</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="#home" id="logoLink">MG</a>
+            </div>
+            <nav id="navbar">
+                <ul>
+                    <li><a href="#home" class="nav-link">Home</a></li>
+                    <li><a href="#all-posts" class="nav-link">All Posts</a></li>
+                    <li><a href="#contact" class="nav-link">Contact</a></li>
+                    <li id="admin-nav" class="admin-only"><a href="#create" class="nav-link">New Post</a></li>
+                </ul>
+            </nav>
+            <!-- Dark Mode Toggle -->
+            <div class="theme-toggle">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </div>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="message-box">
+        <span id="message-text"></span>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Home View -->
+        <section id="homeView" class="view hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1>Manas Gunti</h1>
+                        <h2>Software Engineer & AI/ML Enthusiast</h2>
+                        <p>Welcome to my personal blog where I share insights on <strong>software development</strong>, <strong>machine learning</strong>, and <strong>technology trends</strong>.<br><small>Exploring the intersection of code and innovation</small></p>
+                        <div class="hero-buttons">
+                            <button id="viewAllPostsBtn" class="btn btn-primary">View All Posts</button>
+                            <button id="contactBtn" class="btn btn-secondary">Get In Touch</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-separator"></div>
+                <div class="recent-posts-section">
+                    <h2 class="section-title">Recent Posts</h2>
+                    <div class="section-subtitle">Latest thoughts and technical insights</div>
+                    <div id="recent-posts-container" class="posts-section">
+                        <!-- Recent posts will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- All Posts View -->
+        <section id="allPostsView" class="view view-hidden full-height">
+            <div class="container">
+                <button id="backToHomeFromAll" class="btn btn-secondary back-btn">
+                    ← Back to Home
+                </button>
+                
+                <div class="all-posts-header">
+                    <h1 class="section-title">All Posts</h1>
+                    <div class="section-subtitle">Browse all my blog posts</div>
+                </div>
+
+                <!-- Search and Filter Controls -->
+                <div class="search-filter-section">
+                    <div class="search-controls">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search posts by title, author, or content...">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <div class="filter-controls">
+                            <select id="sortSelect">
+                                <option value="recent">Most Recent</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="title">Title (A-Z)</option>
+                                <option value="author">Author</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="search-results-count" class="results-count">
+                        <!-- Results count will be shown here -->
+                    </div>
+                </div>
+
+                <div id="all-posts-container" class="posts-section posts-content">
+                    <!-- All posts will be dynamically loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact View -->
+        <section id="contactView" class="view view-hidden full-height">
+            <div class="container">
+                <button id="backToHomeFromContact" class="btn btn-secondary back-btn">
+                    ← Back to Home
+                </button>
+                
+                <div class="contact-section">
+                    <h1 class="section-title">Get In Touch</h1>
+                    <div class="section-subtitle">Let's connect and collaborate</div>
+                    
+                    <div class="contact-content">
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h3>Email</h3>
+                                    <p>manas.gunti@example.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fab fa-linkedin"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h3>LinkedIn</h3>
+                                    <a href="https://www.linkedin.com/in/manas-gunti-33451b252/" target="_blank">Connect with me</a>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fab fa-github"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h3>GitHub</h3>
+                                    <a href="https://github.com/Mangun10" target="_blank">View my projects</a>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-code"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h3>Portfolio</h3>
+                                    <a href="https://github.com/Mangun10/Portfolio" target="_blank">View my portfolio</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Post Detail View -->
+        <section id="postDetailView" class="view view-hidden full-height">
+            <div class="container">
+                <button id="backToPostsBtn" class="btn btn-secondary back-btn">
+                    ← Back to Posts
+                </button>
+                
+                <article id="post-content" class="post-article">
+                    <!-- Post content will be dynamically loaded here -->
+                </article>
+
+                <!-- Comments Section -->
+                <section class="comments-section">
+                    <h2 class="section-title">Comments</h2>
+                    <div class="section-subtitle">Share your thoughts</div>
+                    
+                    <!-- Comment Form -->
+                    <form id="commentForm" class="comment-form">
+                        <div class="form-group">
+                            <input type="text" id="commentAuthor" placeholder="Your name" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="commentContent" placeholder="Your comment" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post Comment</button>
+                    </form>
+
+                    <!-- Comments List -->
+                    <div id="comments-list" class="comments-list">
+                        <!-- Comments will be dynamically loaded here -->
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <!-- Create/Edit Post View -->
+        <section id="createEditView" class="view view-hidden full-height">
+            <div class="container">
+                <button id="backFromCreateBtn" class="btn btn-secondary back-btn">
+                    ← Back
+                </button>
+
+                <div class="create-post-section">
+                    <h2 id="formTitle" class="section-title">Create New Post</h2>
+                    <div class="section-subtitle">Share your technical insights</div>
+                    
+                    <form id="postForm" class="post-form">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="postTitle" name="title" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Author</label>
+                            <input type="text" id="postAuthor" name="author" value="Manas Gunti" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Content</label>
+                            <textarea id="postContent" name="content" required></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="submitBtn" class="btn btn-primary">
+                                Publish Post
+                            </button>
+                            <button type="button" id="deleteBtn" class="btn btn-secondary view-hidden">
+                                Delete Post
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Manas Gunti. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="https://github.com/Mangun10" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="https://www.linkedin.com/in/manas-gunti-33451b252/" target="_blank"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Discrete Admin Access Button (hidden in footer) -->
+    <div class="admin-access-discrete">
+        <button id="adminAccessBtn" class="admin-btn-discrete" title="Admin Access">
+            <i class="fas fa-key"></i>
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
