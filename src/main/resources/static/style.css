@@ -1066,3 +1066,23 @@ footer {
         page-break-after: avoid;
     }
 }
+
+.hero-description {
+    color: var(--text-color);
+    font-size: 1.05em;
+}
+
+.highlight-badge {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.highlight-underline {
+    text-decoration: underline wavy;
+    text-underline-offset: 3px;
+    font-style: italic;
+    text-decoration-color: var(--text-color);
+}
