@@ -8,7 +8,7 @@ import java.util.Map;
 
 @RestController
 public class HealthController {
-    
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
         Map<String, String> status = new HashMap<>();
@@ -16,7 +16,7 @@ public class HealthController {
         status.put("message", "Blog Platform is running");
         return ResponseEntity.ok(status);
     }
-    
+
     @GetMapping("/")
     public String home() {
         return "redirect:/index.html";
