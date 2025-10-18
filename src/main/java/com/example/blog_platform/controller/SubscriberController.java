@@ -29,22 +29,22 @@ public class SubscriberController {
     public ResponseEntity<Map<String, Object>> subscribe(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String firstName = request.get("firstName");
-        
+
         Map<String, Object> response = new HashMap<>();
-        
+
         if (subscriberRepository.existsByEmail(email)) {
             response.put("success", false);
             response.put("message", "Email already subscribed!");
             return ResponseEntity.badRequest().body(response);
         }
-        
+
         Subscriber subscriber = new Subscriber();
         subscriber.setEmail(email);
         subscriber.setFirstName(firstName);
         subscriber.setIsActive(true);
-        
+
         subscriberRepository.save(subscriber);
-        
+
         response.put("success", true);
         response.put("message", "Successfully subscribed! You'll receive new blog posts via email.");
         return ResponseEntity.ok(response);
@@ -53,10 +53,10 @@ public class SubscriberController {
     @PostMapping("/unsubscribe")
     public ResponseEntity<Map<String, Object>> unsubscribe(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-        
+
         Map<String, Object> response = new HashMap<>();
         Optional<Subscriber> subscriber = subscriberRepository.findByEmail(email);
-        
+
         if (subscriber.isPresent()) {
             subscriber.get().setIsActive(false);
             subscriberRepository.save(subscriber.get());
@@ -66,7 +66,7 @@ public class SubscriberController {
             response.put("success", false);
             response.put("message", "Email not found in subscribers list!");
         }
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -74,9 +74,9 @@ public class SubscriberController {
     public ResponseEntity<Map<String, Object>> sendPostToEmail(@RequestBody Map<String, Object> request) {
         String email = (String) request.get("email");
         Long postId = Long.valueOf(request.get("postId").toString());
-        
+
         Map<String, Object> response = new HashMap<>();
-        
+
         Optional<Post> post = postRepository.findById(postId);
         if (post.isPresent()) {
             emailService.sendPostToEmail(email, post.get());
@@ -86,7 +86,7 @@ public class SubscriberController {
             response.put("success", false);
             response.put("message", "Blog post not found!");
         }
-        
+
         return ResponseEntity.ok(response);
     }
 }

@@ -27,7 +27,7 @@ import java.util.List;
 public class PostController {
 
     private final PostRepository postRepository;
-    
+
     @Autowired
     private EmailService emailService;
 
@@ -76,14 +76,14 @@ public class PostController {
     @PostMapping
     public ResponseEntity<Post> createPost(@RequestBody Post post) {
         Post savedPost = postRepository.save(post);
-        
+
         // Send email notification to subscribers
         try {
             emailService.sendNewPostNotification(savedPost);
         } catch (Exception e) {
             System.err.println("Failed to send email notifications: " + e.getMessage());
         }
-        
+
         return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
     }
 
