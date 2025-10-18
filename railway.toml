@@ -6,4 +6,3 @@
 
 [env]
   JAVA_VERSION = "17"
-  PORT = "8080"
