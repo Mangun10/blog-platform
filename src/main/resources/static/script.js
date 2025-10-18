@@ -458,6 +458,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="article-content">
                     ${post.content}
                 </div>
+                <div class="post-actions">
+                    <button class="action-btn" onclick="likePost(${post.id})">
+                        👍 Like (${post.likes || 0})
+                    </button>
+                    <button class="action-btn" onclick="openShareModal(${post.id}, '${post.title.replace(/'/g, "\\'")}', '${(post.summary || '').replace(/'/g, "\\'")}')">
+                        📤 Share (${post.shares || 0})
+                    </button>
+                    <button class="action-btn" onclick="openEmailPostModal(${post.id}, '${post.title.replace(/'/g, "\\'")}')">
+                        📧 Email this post
+                    </button>
+                    <button class="action-btn" onclick="openEmailSubscriptionModal()">
+                        📩 Subscribe to newsletter
+                    </button>
+                </div>
             `;
         }
 
@@ -780,8 +794,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3>${post.title}</h3>
                     <div class="post-meta">
                         <span>${new Date(post.creationDate).toLocaleDateString()}</span>
+                        <span class="reading-time">${readingTime}</span>
                     </div>
                     <p class="post-excerpt">${excerpt}</p>
+                    <div class="post-actions">
+                        <button class="action-btn like-btn" onclick="likePost(${post.id})" title="Like this post">
+                            <i class="fas fa-heart"></i>
+                            <span class="like-count">${post.likes || 0}</span>
+                        </button>
+                        <button class="action-btn share-btn" onclick="openShareModal(${post.id}, '${post.title.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-share-alt"></i>
+                            <span class="share-count">${post.shares || 0}</span>
+                        </button>
+                        <button class="action-btn email-btn" onclick="openEmailSubscriptionModal()" title="Subscribe for updates">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                    </div>
                 </div>
             </article>
         `;
@@ -1031,4 +1059,196 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         renderApp();
     };
+
+    // Social media functions
+    window.likePost = async function(postId) {
+        try {
+            const response = await fetch(`/api/posts/${postId}/like`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                // Refresh the current view to show updated like count
+                await loadPosts();
+                renderApp();
+            } else {
+                console.error('Failed to like post');
+            }
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
+    };
+
+    window.openShareModal = function(postId, postTitle, postSummary) {
+        const modal = document.getElementById('shareModal');
+        const modalTitle = modal.querySelector('.modal-title');
+        const modalSummary = modal.querySelector('.modal-summary');
+        
+        modalTitle.textContent = postTitle;
+        modalSummary.textContent = postSummary;
+        
+        // Set up share buttons
+        const twitterBtn = modal.querySelector('.twitter-share');
+        const facebookBtn = modal.querySelector('.facebook-share');
+        const linkedinBtn = modal.querySelector('.linkedin-share');
+        const copyBtn = modal.querySelector('.copy-link');
+        
+        const postUrl = `${window.location.origin}/post/${postId}`;
+        
+        twitterBtn.onclick = () => shareOnTwitter(postTitle, postUrl);
+        facebookBtn.onclick = () => shareOnFacebook(postUrl);
+        linkedinBtn.onclick = () => shareOnLinkedIn(postTitle, postSummary, postUrl);
+        copyBtn.onclick = () => copyToClipboard(postUrl);
+        
+        modal.style.display = 'block';
+    };
+
+    window.shareOnTwitter = function(title, url) {
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+        window.open(twitterUrl, '_blank', 'width=600,height=400');
+        incrementShareCount();
+    };
+
+    window.shareOnFacebook = function(url) {
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        window.open(facebookUrl, '_blank', 'width=600,height=400');
+        incrementShareCount();
+    };
+
+    window.shareOnLinkedIn = function(title, summary, url) {
+        const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        window.open(linkedinUrl, '_blank', 'width=600,height=400');
+        incrementShareCount();
+    };
+
+    window.copyToClipboard = async function(url) {
+        try {
+            await navigator.clipboard.writeText(url);
+            alert('Link copied to clipboard!');
+            incrementShareCount();
+        } catch (error) {
+            console.error('Failed to copy link:', error);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Link copied to clipboard!');
+            incrementShareCount();
+        }
+    };
+
+    window.incrementShareCount = async function() {
+        if (currentState.view === 'singlePost' && currentState.postId) {
+            try {
+                const response = await fetch(`/api/posts/${currentState.postId}/share`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    // Update the share count in the current view
+                    await loadPosts();
+                    renderApp();
+                }
+            } catch (error) {
+                console.error('Error updating share count:', error);
+            }
+        }
+        
+        // Close the modal
+        document.getElementById('shareModal').style.display = 'none';
+    };
+
+    window.openEmailSubscriptionModal = function() {
+        document.getElementById('emailSubscriptionModal').style.display = 'block';
+    };
+
+    window.openEmailPostModal = function(postId, postTitle) {
+        const modal = document.getElementById('emailPostModal');
+        const modalTitle = modal.querySelector('.modal-title');
+        const postIdInput = document.getElementById('emailPostId');
+        
+        modalTitle.textContent = `Send "${postTitle}" via Email`;
+        postIdInput.value = postId;
+        
+        modal.style.display = 'block';
+    };
+
+    // Modal close handlers
+    document.querySelectorAll('.modal .close').forEach(closeBtn => {
+        closeBtn.onclick = function() {
+            this.closest('.modal').style.display = 'none';
+        };
+    });
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    };
+
+    // Email subscription form handler
+    document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('subscribeEmail').value;
+        
+        try {
+            const response = await fetch('/api/subscribers/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email })
+            });
+            
+            if (response.ok) {
+                alert('Successfully subscribed to the newsletter!');
+                document.getElementById('emailSubscriptionModal').style.display = 'none';
+                document.getElementById('subscribeForm').reset();
+            } else {
+                const error = await response.text();
+                alert(`Subscription failed: ${error}`);
+            }
+        } catch (error) {
+            console.error('Error subscribing:', error);
+            alert('An error occurred while subscribing. Please try again.');
+        }
+    });
+
+    // Email post form handler  
+    document.getElementById('emailPostForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('emailAddress').value;
+        const postId = document.getElementById('emailPostId').value;
+        
+        try {
+            const response = await fetch('/api/subscribers/send-post-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    email: email,
+                    postId: parseInt(postId)
+                })
+            });
+            
+            if (response.ok) {
+                alert('Post sent successfully via email!');
+                document.getElementById('emailPostModal').style.display = 'none';
+                document.getElementById('emailPostForm').reset();
+            } else {
+                const error = await response.text();
+                alert(`Failed to send email: ${error}`);
+            }
+        } catch (error) {
+            console.error('Error sending email:', error);
+            alert('An error occurred while sending the email. Please try again.');
+        }
+    });
 });

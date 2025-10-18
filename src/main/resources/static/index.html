@@ -305,6 +305,77 @@
         </div>
     </footer>
 
+    <!-- Email Subscription Popup -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2>📧 Subscribe to Our Blog</h2>
+                <p>Get the latest blog posts delivered directly to your inbox!</p>
+            </div>
+            <form id="subscriptionForm">
+                <div class="form-group">
+                    <label for="subscriberName">First Name (Optional)</label>
+                    <input type="text" id="subscriberName" placeholder="Your first name">
+                </div>
+                <div class="form-group">
+                    <label for="subscriberEmail">Email Address *</label>
+                    <input type="email" id="subscriberEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="subscribeNewsletter" checked>
+                        <span class="checkmark"></span>
+                        I want to receive new blog posts via email
+                    </label>
+                </div>
+                <button type="submit" class="subscribe-btn">
+                    <i class="fas fa-envelope"></i> Subscribe Now
+                </button>
+            </form>
+            <div class="modal-footer">
+                <p>No spam, unsubscribe at any time. 🔒</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Post Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2>📤 Share This Post</h2>
+                <p id="sharePostTitle">Amazing Blog Post</p>
+            </div>
+            <div class="share-options">
+                <button class="share-btn twitter" onclick="shareToTwitter()">
+                    <i class="fab fa-twitter"></i> Twitter
+                </button>
+                <button class="share-btn facebook" onclick="shareToFacebook()">
+                    <i class="fab fa-facebook"></i> Facebook
+                </button>
+                <button class="share-btn linkedin" onclick="shareToLinkedIn()">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </button>
+                <button class="share-btn whatsapp" onclick="shareToWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button class="share-btn copy-link" onclick="copyPostLink()">
+                    <i class="fas fa-link"></i> Copy Link
+                </button>
+            </div>
+            <div class="email-share-section">
+                <h3>📧 Send to Email</h3>
+                <form id="emailShareForm">
+                    <input type="email" id="shareEmail" placeholder="friend@email.com" required>
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Discrete Admin Access Button (hidden in footer) -->
     
 

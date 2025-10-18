@@ -2,6 +2,7 @@ package com.example.blog_platform.controller;
 
 import com.example.blog_platform.model.Post;
 import com.example.blog_platform.repository.PostRepository;
+import com.example.blog_platform.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,9 @@ import java.util.List;
 public class PostController {
 
     private final PostRepository postRepository;
+    
+    @Autowired
+    private EmailService emailService;
 
     /**
      * Constructor for dependency injection. Spring automatically provides an
@@ -71,7 +75,16 @@ public class PostController {
      */
     @PostMapping
     public ResponseEntity<Post> createPost(@RequestBody Post post) {
-        return new ResponseEntity<>(postRepository.save(post), HttpStatus.CREATED);
+        Post savedPost = postRepository.save(post);
+        
+        // Send email notification to subscribers
+        try {
+            emailService.sendNewPostNotification(savedPost);
+        } catch (Exception e) {
+            System.err.println("Failed to send email notifications: " + e.getMessage());
+        }
+        
+        return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
     }
 
     /**
@@ -148,5 +161,37 @@ public class PostController {
     public ResponseEntity<List<String>> getAllCategories() {
         List<String> categories = postRepository.findAllCategories();
         return new ResponseEntity<>(categories, HttpStatus.OK);
+    }
+
+    /**
+     * Like a blog post
+     * 
+     * @param id The ID of the post to like
+     * @return The updated post with incremented likes
+     */
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Post> likePost(@PathVariable Long id) {
+        return postRepository.findById(id)
+                .map(post -> {
+                    post.setLikes(post.getLikes() + 1);
+                    return new ResponseEntity<>(postRepository.save(post), HttpStatus.OK);
+                })
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    /**
+     * Share a blog post (increment share count)
+     * 
+     * @param id The ID of the post to share
+     * @return The updated post with incremented shares
+     */
+    @PostMapping("/{id}/share")
+    public ResponseEntity<Post> sharePost(@PathVariable Long id) {
+        return postRepository.findById(id)
+                .map(post -> {
+                    post.setShares(post.getShares() + 1);
+                    return new ResponseEntity<>(postRepository.save(post), HttpStatus.OK);
+                })
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

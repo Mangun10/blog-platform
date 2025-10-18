@@ -51,6 +51,12 @@ public class Post {
     @Column(name = "reading_time")
     private Integer readingTime; // Estimated reading time in minutes
 
+    @Column(name = "likes", nullable = false)
+    private Integer likes = 0; // Number of likes for this post
+
+    @Column(name = "shares", nullable = false)
+    private Integer shares = 0; // Number of shares for this post
+
     // A method that will be called before a new entity is persisted to set the
     // creation date.
     @PrePersist
