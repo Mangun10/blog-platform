@@ -6,6 +6,9 @@
     <title>Manas Gunti | Blog</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -62,6 +65,11 @@
                             <button id="contactBtn" class="btn btn-secondary">Get In Touch</button>
                         </div>
                     </div>
+                        
+
+                    <div class="hero-visual">
+                        <img src="images/logo.gif" alt="Animated GIF" class="hero-gif">
+                    </div>
                 </div>
                 <div class="section-separator"></div>
                 <div class="recent-posts-section">
@@ -90,7 +98,7 @@
                 <div class="search-filter-section">
                     <div class="search-controls">
                         <div class="search-box">
-                            <input type="text" id="searchInput" placeholder="Search posts by title, author, or content...">
+                            <input type="text" id="searchInput" placeholder="Search posts by title, author, content, or category...">
                             <i class="fas fa-search search-icon"></i>
                         </div>
                         <div class="filter-controls">
@@ -99,6 +107,7 @@
                                 <option value="oldest">Oldest First</option>
                                 <option value="title">Title (A-Z)</option>
                                 <option value="author">Author</option>
+                                <option value="category">Category</option>
                             </select>
                         </div>
                     </div>
@@ -132,7 +141,7 @@
                                 </div>
                                 <div class="contact-details">
                                     <h3>Email</h3>
-                                    <p>manas.gunti@example.com</p>
+                                    <p>manas.gunti@gmail.com</p>
                                 </div>
                             </div>
                             
@@ -145,14 +154,14 @@
                                     <a href="https://www.linkedin.com/in/manas-gunti-33451b252/" target="_blank">Connect with me</a>
                                 </div>
                             </div>
-                            
+
                             <div class="contact-item">
                                 <div class="contact-icon">
                                     <i class="fab fa-github"></i>
                                 </div>
                                 <div class="contact-details">
                                     <h3>GitHub</h3>
-                                    <a href="https://github.com/Mangun10" target="_blank">View my projects</a>
+                                    <a href="https://mangun10.github.io/Portfolio/" target="_blank">View my projects</a>
                                 </div>
                             </div>
 
@@ -217,29 +226,60 @@
                     <h2 id="formTitle" class="section-title">Create New Post</h2>
                     <div class="section-subtitle">Share your technical insights</div>
                     
+                    <!-- Update the form in createEditView section -->
                     <form id="postForm" class="post-form">
                         <div class="form-group">
-                            <label>Title</label>
+                            <label for="postTitle">Title</label>
                             <input type="text" id="postTitle" name="title" required>
                         </div>
-
+                        
                         <div class="form-group">
-                            <label>Author</label>
-                            <input type="text" id="postAuthor" name="author" value="Manas Gunti" required>
+                            <label for="postAuthor">Author</label>
+                            <input type="text" id="postAuthor" name="author" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="postCategory">Category</label>
+                            <select id="postCategory" name="category" required>
+                                <option value="">Select a category</option>
+                                <option value="Technical">Technical</option>
+                                <option value="Philosophy">Philosophy</option>
+                                <option value="Life">Life</option>
+                                <option value="custom">Other (specify below)</option>
+                            </select>
+                            <input type="text" id="customCategory" name="customCategory" placeholder="Enter custom category" style="display: none; margin-top: 10px;">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="featuredImage">Featured Image URL (optional)</label>
+                            <input type="url" id="featuredImage" name="featuredImage" placeholder="https://example.com/image.jpg">
                         </div>
 
+                        <div class="form-group">
+                            <label for="excerpt">Post Excerpt (optional)</label>
+                            <textarea id="excerpt" name="excerpt" rows="3" placeholder="Brief description of your post..."></textarea>
+                        </div>
+                        
                         <div class="form-group">
                             <label>Content</label>
-                            <textarea id="postContent" name="content" required></textarea>
+                            <div class="editor-toolbar">
+                                <button type="button" id="uploadImageBtn" class="btn btn-secondary">
+                                    <i class="fas fa-image"></i> Add Image
+                                </button>
+                                <button type="button" id="uploadVideoBtn" class="btn btn-secondary">
+                                    <i class="fas fa-video"></i> Add Video
+                                </button>
+                                <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
+                            </div>
+                            <div id="editor" style="height: 400px;">
+                                <!-- Rich text editor will be initialized here -->
+                            </div>
+                            <textarea id="postContent" name="content" style="display: none;" required></textarea>
                         </div>
-
+                        
                         <div class="form-actions">
-                            <button type="submit" id="submitBtn" class="btn btn-primary">
-                                Publish Post
-                            </button>
-                            <button type="button" id="deleteBtn" class="btn btn-secondary view-hidden">
-                                Delete Post
-                            </button>
+                            <button type="submit" id="submitBtn" class="btn btn-primary">Publish Post</button>
+                            <button type="button" id="deleteBtn" class="btn btn-danger view-hidden">Delete Post</button>
                         </div>
                     </form>
                 </div>
@@ -252,20 +292,21 @@
         <div class="container">
             <div class="footer-content">
                 <p>&copy; 2025 Manas Gunti. All rights reserved.</p>
-                <div class="social-links">
+                <!-- <div class="social-links">
                     <a href="https://github.com/Mangun10" target="_blank"><i class="fab fa-github"></i></a>
                     <a href="https://www.linkedin.com/in/manas-gunti-33451b252/" target="_blank"><i class="fab fa-linkedin"></i></a>
+                </div> -->
+                <div class="admin-access-discrete">
+                    <button id="adminAccessBtn" class="admin-btn-discrete" title="Admin Access">
+                        <i class="fas fa-key"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </footer>
 
     <!-- Discrete Admin Access Button (hidden in footer) -->
-    <div class="admin-access-discrete">
-        <button id="adminAccessBtn" class="admin-btn-discrete" title="Admin Access">
-            <i class="fas fa-key"></i>
-        </button>
-    </div>
+    
 
     <script src="script.js"></script>
 </body>

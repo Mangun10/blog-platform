@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // API Configuration
-    const API_BASE_URL = 'http://localhost:8081/api';
-    const ADMIN_PASSWORD = 'test'; // Change this to your password
+    // API Configuration - Dynamic URL for production
+    const API_BASE_URL = window.location.origin + '/api';
+    const ADMIN_PASSWORD = 'test'; // This will be overridden by environment variable
     
     // DOM Elements
     const loadingDiv = document.getElementById('loading');
@@ -14,7 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
         postId: null
     };
     let allPosts = []; // Store all posts for filtering/sorting
+    let allCategories = []; // Store all categories for filtering
     let isAdmin = false; // Track admin status
+    let quill = null; // Rich text editor instance
 
     // Check admin status (simple implementation)
     const checkAdminStatus = () => {
@@ -151,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Failed to fetch posts');
             allPosts = await response.json();
             allPosts.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
+            await fetchCategories(); // Fetch categories after posts
             renderCurrentView();
         } catch (error) {
             console.error('Error fetching posts:', error);
@@ -185,6 +188,27 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error fetching comments:', error);
             return [];
+        }
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/posts/categories`);
+            if (!response.ok) throw new Error('Failed to fetch categories');
+            allCategories = await response.json();
+            populateCategoryFilter();
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
+
+    const populateCategoryFilter = () => {
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+            categoryFilter.innerHTML = '<option value="">All Categories</option>';
+            allCategories.forEach(category => {
+                categoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+            });
         }
     };
 
@@ -308,20 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         postsContainer.innerHTML = `
             <div class="posts-grid">
-                ${recentPosts.map(post => `
-                    <article class="post-card" data-id="${post.id}">
-                        <div class="post-category">Technical Blog</div>
-                        <h3>${post.title}</h3>
-                        <div class="post-meta">
-                            <span>By ${post.author}</span>
-                            <span>•</span>
-                            <span>${new Date(post.creationDate).toLocaleDateString()}</span>
-                        </div>
-                        <p class="post-excerpt">
-                            ${post.content.substring(0, 150)}...
-                        </p>
-                    </article>
-                `).join('')}
+                ${recentPosts.map(post => renderPostCard(post)).join('')}
             </div>
         `;
 
@@ -343,13 +354,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get current filter values
         const searchTerm = document.getElementById('searchInput')?.value?.toLowerCase() || '';
         const sortOrder = document.getElementById('sortSelect')?.value || 'recent';
+        const categoryFilter = document.getElementById('categoryFilter')?.value || '';
         
         // Filter posts
-        let filteredPosts = allPosts.filter(post => 
-            post.title.toLowerCase().includes(searchTerm) ||
-            post.author.toLowerCase().includes(searchTerm) ||
-            post.content.toLowerCase().includes(searchTerm)
-        );
+        let filteredPosts = allPosts.filter(post => {
+            const matchesSearch = post.title.toLowerCase().includes(searchTerm) ||
+                                post.author.toLowerCase().includes(searchTerm) ||
+                                post.content.toLowerCase().includes(searchTerm) ||
+                                (post.category && post.category.toLowerCase().includes(searchTerm));
+            
+            const matchesCategory = !categoryFilter || post.category === categoryFilter;
+            
+            return matchesSearch && matchesCategory;
+        });
 
         // Sort posts
         switch (sortOrder) {
@@ -364,6 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'author':
                 filteredPosts.sort((a, b) => a.author.localeCompare(b.author));
+                break;
+            case 'category':
+                filteredPosts.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
                 break;
         }
 
@@ -383,20 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         postsContainer.innerHTML = `
             <div class="posts-grid">
-                ${filteredPosts.map(post => `
-                    <article class="post-card" data-id="${post.id}">
-                        <div class="post-category">Technical Blog</div>
-                        <h3>${post.title}</h3>
-                        <div class="post-meta">
-                            <span>By ${post.author}</span>
-                            <span>•</span>
-                            <span>${new Date(post.creationDate).toLocaleDateString()}</span>
-                        </div>
-                        <p class="post-excerpt">
-                            ${post.content.substring(0, 150)}...
-                        </p>
-                    </article>
-                `).join('')}
+                ${filteredPosts.map(post => renderPostCard(post)).join('')}
             </div>
         `;
 
@@ -416,6 +423,16 @@ document.addEventListener('DOMContentLoaded', function() {
             hour: '2-digit', minute: '2-digit'
         });
 
+        // Calculate reading time if not provided
+        let readingTime = '';
+        if (post.readingTime && post.readingTime > 0) {
+            readingTime = `${post.readingTime} min read`;
+        } else if (post.content) {
+            const wordCount = post.content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+            const estimatedTime = Math.max(1, Math.ceil(wordCount / 200));
+            readingTime = `${estimatedTime} min read`;
+        }
+
         const postContent = document.getElementById('post-content');
         const commentsList = document.getElementById('comments-list');
 
@@ -428,6 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>By ${post.author}</span>
                             <span>•</span>
                             <span>${formattedDate}</span>
+                            ${readingTime ? `<span>•</span><span>${readingTime}</span>` : ''}
                         </div>
                         ${isAdmin ? `
                         <div class="article-actions">
@@ -438,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="article-content">
-                    ${post.content.replace(/\n/g, '<br>')}
+                    ${post.content}
                 </div>
             `;
         }
@@ -485,16 +503,291 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        if (isEdit && post) {
-            document.getElementById('postTitle').value = post.title;
-            document.getElementById('postAuthor').value = post.author;
-            document.getElementById('postContent').value = post.content;
-        } else {
-            document.getElementById('postTitle').value = '';
-            document.getElementById('postAuthor').value = 'Manas Gunti';
-            document.getElementById('postContent').value = '';
+        // Initialize or reinitialize the editor
+        setTimeout(() => {
+            initializeEditor();
+            setupFileUpload();
+            
+            if (isEdit && post) {
+                document.getElementById('postTitle').value = post.title;
+                document.getElementById('postAuthor').value = post.author;
+                document.getElementById('featuredImage').value = post.featuredImage || '';
+                document.getElementById('excerpt').value = post.excerpt || '';
+                
+                const categorySelect = document.getElementById('postCategory');
+                const customCategoryInput = document.getElementById('customCategory');
+                
+                if (post.category) {
+                    const predefinedCategories = ['Technical', 'Philosophy', 'Life'];
+                    if (predefinedCategories.includes(post.category)) {
+                        categorySelect.value = post.category;
+                        customCategoryInput.style.display = 'none';
+                    } else {
+                        categorySelect.value = 'custom';
+                        customCategoryInput.style.display = 'block';
+                        customCategoryInput.value = post.category;
+                    }
+                }
+                
+                // Set editor content - handle both HTML and plain text
+                if (quill && post.content) {
+                    // Check if content is HTML or plain text
+                    if (post.content.includes('<') && post.content.includes('>')) {
+                        // It's HTML content
+                        quill.root.innerHTML = post.content;
+                    } else {
+                        // It's plain text, convert newlines to HTML
+                        const htmlContent = post.content.replace(/\n/g, '<br>');
+                        quill.root.innerHTML = htmlContent;
+                    }
+                    document.getElementById('postContent').value = quill.root.innerHTML;
+                }
+            } else {
+                // Clear form for new post
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postAuthor').value = 'Manas Gunti';
+                document.getElementById('featuredImage').value = '';
+                document.getElementById('excerpt').value = '';
+                document.getElementById('postCategory').value = '';
+                document.getElementById('customCategory').style.display = 'none';
+                document.getElementById('customCategory').value = '';
+                
+                if (quill) {
+                    quill.setContents([]);
+                    document.getElementById('postContent').value = '';
+                }
+            }
+        }, 100);
+    };
+
+    // Add category selection handling
+    const setupCategoryHandling = () => {
+        const categorySelect = document.getElementById('postCategory');
+        const customCategoryInput = document.getElementById('customCategory');
+        
+        if (categorySelect && customCategoryInput) {
+            categorySelect.addEventListener('change', (e) => {
+                if (e.target.value === 'custom') {
+                    customCategoryInput.style.display = 'block';
+                    customCategoryInput.required = true;
+                } else {
+                    customCategoryInput.style.display = 'none';
+                    customCategoryInput.required = false;
+                    customCategoryInput.value = '';
+                }
+            });
         }
     };
+
+    // Initialize rich text editor
+    const initializeEditor = () => {
+        // Destroy existing editor if it exists
+        if (quill) {
+            const toolbar = document.querySelector('.ql-toolbar');
+            const container = document.querySelector('.ql-container');
+            if (toolbar) toolbar.remove();
+            if (container) container.remove();
+            quill = null;
+        }
+        
+        // Make sure editor element exists
+        const editorElement = document.getElementById('editor');
+        if (!editorElement) return;
+        
+        // Clear any existing content
+        editorElement.innerHTML = '';
+        
+        quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    ['blockquote', 'code-block'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Handle content changes
+        quill.on('text-change', () => {
+            const content = quill.root.innerHTML;
+            const hiddenTextarea = document.getElementById('postContent');
+            if (hiddenTextarea) {
+                hiddenTextarea.value = content;
+            }
+        });
+    };
+
+    // File upload functionality
+    const setupFileUpload = () => {
+        const fileInput = document.getElementById('fileInput');
+        const uploadImageBtn = document.getElementById('uploadImageBtn');
+        const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+
+        uploadImageBtn?.addEventListener('click', () => {
+            fileInput.accept = 'image/*';
+            fileInput.click();
+        });
+
+        uploadVideoBtn?.addEventListener('click', () => {
+            fileInput.accept = 'video/*';
+            fileInput.click();
+        });
+
+        fileInput?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                await uploadFile(file);
+            }
+        });
+    };
+
+    // Upload file function
+    const uploadFile = async (file) => {
+        if (!file) return;
+
+        showLoading();
+        
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${API_BASE_URL}/files/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Upload failed');
+            }
+
+            const result = await response.json();
+            insertMediaIntoEditor(result);
+            showMessage('File uploaded successfully!');
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            showMessage(`Upload failed: ${error.message}`);
+        } finally {
+            hideLoading();
+            // Reset file input
+            document.getElementById('fileInput').value = '';
+        }
+    };
+
+    // Insert media into editor
+    const insertMediaIntoEditor = (fileData) => {
+        if (!quill) return;
+
+        const range = quill.getSelection();
+        const index = range ? range.index : quill.getLength();
+
+        if (fileData.type.startsWith('image/')) {
+            quill.insertEmbed(index, 'image', fileData.url);
+            quill.insertText(index + 1, '\n');
+            quill.setSelection(index + 2);
+            
+            // Make images resizable and properly styled
+            setTimeout(() => {
+                const images = quill.container.querySelectorAll('img');
+                images.forEach(img => {
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.borderRadius = '8px';
+                    img.style.margin = '10px 0';
+                    img.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                    img.style.cursor = 'pointer';
+                    
+                    // Add click handler for image resizing
+                    img.addEventListener('click', () => {
+                        const currentWidth = img.style.width;
+                        if (currentWidth === '50%') {
+                            img.style.width = '100%';
+                        } else if (currentWidth === '100%' || !currentWidth) {
+                            img.style.width = '75%';
+                        } else if (currentWidth === '75%') {
+                            img.style.width = '50%';
+                        }
+                    });
+                });
+            }, 100);
+            
+        } else if (fileData.type.startsWith('video/')) {
+            // Insert video as HTML
+            const videoHtml = `<video controls style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px;">
+                <source src="${fileData.url}" type="${fileData.type}">
+                Your browser does not support the video tag.
+            </video>`;
+            
+            quill.clipboard.dangerouslyPasteHTML(index, videoHtml);
+            quill.setSelection(index + 1);
+        }
+    };
+
+    // Update post card rendering to show featured images
+    const renderPostCard = (post) => {
+        const featuredImageHtml = (post.featuredImage && post.featuredImage.trim()) ? 
+            `<img src="${post.featuredImage}" alt="${post.title}" class="post-card-image">` : '';
+        
+        // Create excerpt from content if none exists
+        let excerpt = '';
+        if (post.excerpt && post.excerpt.trim()) {
+            excerpt = post.excerpt.trim();
+        } else if (post.content && post.content.trim()) {
+            // Remove HTML tags and get clean text, handle multiple spaces
+            const cleanContent = post.content
+                .replace(/<[^>]*>/g, '') // Remove HTML tags
+                .replace(/&nbsp;/g, ' ') // Replace HTML spaces
+                .replace(/&amp;/g, '&') // Replace HTML entities
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+                .trim(); // Remove leading/trailing spaces
+            
+            if (cleanContent.length > 0) {
+                excerpt = cleanContent.length > 120 ? cleanContent.substring(0, 120) + '...' : cleanContent;
+            }
+        }
+        
+        // Fallback if excerpt is still empty or too short
+        if (!excerpt || excerpt.trim() === '' || excerpt.trim().length < 10) {
+            excerpt = `A ${post.category || 'blog'} post by ${post.author}. Click to read more...`;
+        }
+        
+        // Calculate reading time if not provided
+        let readingTime = '';
+        if (post.readingTime && post.readingTime > 0) {
+            readingTime = `${post.readingTime} min read`;
+        } else if (post.content) {
+            const wordCount = post.content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+            const estimatedTime = Math.max(1, Math.ceil(wordCount / 200));
+            readingTime = `${estimatedTime} min read`;
+        }
+
+        return `
+            <article class="post-card ${(post.featuredImage && post.featuredImage.trim()) ? 'has-image' : ''}" data-id="${post.id}">
+                ${featuredImageHtml}
+                <div class="post-card-content">
+                    <div class="post-category">${post.category || 'Uncategorized'}</div>
+                    <h3>${post.title}</h3>
+                    <div class="post-meta">
+                        <span>${new Date(post.creationDate).toLocaleDateString()}</span>
+                    </div>
+                    <p class="post-excerpt">${excerpt}</p>
+                </div>
+            </article>
+        `;
+    };
+
+    // --- Render Functions ---
 
     const renderCurrentView = () => {
         switch (currentState.view) {
@@ -639,6 +932,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const setupSearchAndFilter = () => {
         const searchInput = document.getElementById('searchInput');
         const sortSelect = document.getElementById('sortSelect');
+        const categoryFilter = document.getElementById('categoryFilter');
         
         if (searchInput) {
             searchInput.addEventListener('input', () => {
@@ -655,6 +949,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+        
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', () => {
+                if (currentState.view === 'all-posts') {
+                    renderAllPostsPage();
+                }
+            });
+        }
     };
 
     // Forms
@@ -663,11 +965,28 @@ document.addEventListener('DOMContentLoaded', function() {
         postForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const form = e.target;
+            
+            let category = form.category.value;
+            if (category === 'custom') {
+                category = form.customCategory.value.trim();
+                if (!category) {
+                    showMessage('Please enter a custom category name.');
+                    return;
+                }
+            }
+            
+            // Get content from Quill editor
+            const content = quill ? quill.root.innerHTML : form.content.value;
+            
             const postData = {
                 title: form.title.value,
                 author: form.author.value,
-                content: form.content.value
+                content: content,
+                category: category,
+                featuredImage: form.featuredImage.value || null,
+                excerpt: form.excerpt.value || null
             };
+            
             if (currentState.view === 'edit-post' && currentState.postId) {
                 updatePost(currentState.postId, postData);
             } else {
@@ -701,6 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize
     checkAdminStatus();
     setupSearchAndFilter();
+    setupCategoryHandling();
 
     // Initial render based on URL hash
     window.onload = () => {

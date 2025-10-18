@@ -36,14 +36,40 @@ public class Post {
     @Column(nullable = false)
     private String author;
 
+    @Column(nullable = false)
+    private String category; // New field for category
+
     @Column(name = "creation_date", updatable = false)
     private LocalDateTime creationDate;
+
+    @Column(name = "featured_image")
+    private String featuredImage; // URL for main post image
+
+    @Column(name = "excerpt", length = 500)
+    private String excerpt; // Short description for post cards
+
+    @Column(name = "reading_time")
+    private Integer readingTime; // Estimated reading time in minutes
 
     // A method that will be called before a new entity is persisted to set the
     // creation date.
     @PrePersist
     protected void onCreate() {
         this.creationDate = LocalDateTime.now();
+        this.readingTime = calculateReadingTime();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.readingTime = calculateReadingTime();
+    }
+
+    private Integer calculateReadingTime() {
+        if (content == null || content.isEmpty()) return 0;
+        // Average reading speed: 200 words per minute
+        String textContent = content.replaceAll("<[^>]*>", ""); // Remove HTML tags
+        int wordCount = textContent.split("\\s+").length;
+        return Math.max(1, wordCount / 200);
     }
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

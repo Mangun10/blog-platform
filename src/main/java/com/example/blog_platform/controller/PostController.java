@@ -114,4 +114,39 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    /**
+     * Get all posts by category
+     * 
+     * @param category The category to filter by
+     * @return List of posts in the specified category
+     */
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<Post>> getPostsByCategory(@PathVariable String category) {
+        List<Post> posts = postRepository.findByCategoryIgnoreCase(category);
+        return new ResponseEntity<>(posts, HttpStatus.OK);
+    }
+
+    /**
+     * Search posts by term (searches title, content, author, and category)
+     * 
+     * @param searchTerm The term to search for
+     * @return List of posts matching the search term
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<Post>> searchPosts(@RequestParam String searchTerm) {
+        List<Post> posts = postRepository.searchPosts(searchTerm);
+        return new ResponseEntity<>(posts, HttpStatus.OK);
+    }
+
+    /**
+     * Get all available categories
+     * 
+     * @return List of all distinct categories
+     */
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getAllCategories() {
+        List<String> categories = postRepository.findAllCategories();
+        return new ResponseEntity<>(categories, HttpStatus.OK);
+    }
 }
