@@ -1,0 +1,8 @@
+[build]
+  builder = "nixpacks"
+
+[deploy]
+  restartPolicyType = "always"
+
+[env]
+  JAVA_VERSION = "21"

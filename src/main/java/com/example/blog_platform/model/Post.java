@@ -65,7 +65,8 @@ public class Post {
     }
 
     private Integer calculateReadingTime() {
-        if (content == null || content.isEmpty()) return 0;
+        if (content == null || content.isEmpty())
+            return 0;
         // Average reading speed: 200 words per minute
         String textContent = content.replaceAll("<[^>]*>", ""); // Remove HTML tags
         int wordCount = textContent.split("\\s+").length;

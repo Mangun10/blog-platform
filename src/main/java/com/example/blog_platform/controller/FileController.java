@@ -24,8 +24,8 @@ public class FileController {
     private String uploadDir;
 
     private final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-    private final String[] ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"};
-    private final String[] ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/ogg"};
+    private final String[] ALLOWED_IMAGE_TYPES = { "image/jpeg", "image/png", "image/gif", "image/webp" };
+    private final String[] ALLOWED_VIDEO_TYPES = { "video/mp4", "video/webm", "video/ogg" };
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
@@ -76,13 +76,16 @@ public class FileController {
     }
 
     private boolean isAllowedFileType(String contentType) {
-        if (contentType == null) return false;
-        
+        if (contentType == null)
+            return false;
+
         for (String type : ALLOWED_IMAGE_TYPES) {
-            if (contentType.equals(type)) return true;
+            if (contentType.equals(type))
+                return true;
         }
         for (String type : ALLOWED_VIDEO_TYPES) {
-            if (contentType.equals(type)) return true;
+            if (contentType.equals(type))
+                return true;
         }
         return false;
     }
