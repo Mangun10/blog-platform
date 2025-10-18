@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const API_BASE_URL = window.location.origin + '/api';
     const ADMIN_PASSWORD = 'test'; // This will be overridden by environment variable
     
-    // DOM Elements
+    // DOM Elements gvgfg
     const loadingDiv = document.getElementById('loading');
     const messageBox = document.getElementById('message-box');
     const messageText = document.getElementById('message-text');
