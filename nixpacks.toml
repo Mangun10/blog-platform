@@ -1,17 +1,17 @@
-# Nixpacks configuration for optimized Railway builds
+# Simple Nixpacks configuration for Railway
 
 [phases.setup]
 nixPkgs = ["jdk17", "maven"]
 
 [phases.build]
 cmds = [
-  "mvn clean package -DskipTests -B -q",
+  "chmod +x ./mvnw",
+  "./mvnw clean package -DskipTests -Dmaven.test.skip=true",
   "ls -la target/"
 ]
 
 [start]
-cmd = "java -Xms256m -Xmx512m -Djava.security.egd=file:/dev/./urandom -jar target/*.jar"
+cmd = "./mvnw spring-boot:run -Dspring-boot.run.profiles=production"
 
 [variables]
-MAVEN_OPTS = "-Xmx1536m"
-JAVA_OPTS = "-Xms256m -Xmx512m"
+MAVEN_OPTS = "-Xmx1024m"
