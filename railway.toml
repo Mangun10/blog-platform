@@ -3,8 +3,6 @@
 
 [deploy]
   restartPolicyType = "always"
-  healthcheckPath = "/health"
-  healthcheckTimeout = 120
 
 [env]
   JAVA_VERSION = "17"
