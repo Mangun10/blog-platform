@@ -14,6 +14,9 @@ import java.util.Map;
 @Controller
 public class HomeController {
 
+    @Autowired
+    private DataSource dataSource;
+
     @GetMapping("/")
     public String home() {
         return "forward:/index.html";
@@ -23,9 +26,20 @@ public class HomeController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getDatabaseStatus() {
         Map<String, Object> status = new HashMap<>();
-        status.put("status", "H2 Database Active");
-        status.put("timestamp", System.currentTimeMillis());
-        return ResponseEntity.ok(status);
+        
+        try (Connection connection = dataSource.getConnection()) {
+            status.put("status", "connected");
+            status.put("database", connection.getMetaData().getDatabaseProductName());
+            status.put("url", connection.getMetaData().getURL().replaceAll("password=[^&]*", "password=***"));
+            status.put("driver", connection.getMetaData().getDriverName());
+            status.put("timestamp", System.currentTimeMillis());
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            status.put("status", "error");
+            status.put("error", e.getMessage());
+            status.put("timestamp", System.currentTimeMillis());
+            return ResponseEntity.internalServerError().body(status);
+        }
     }
 
     @GetMapping("/health")
