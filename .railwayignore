@@ -1,0 +1,36 @@
+# Railway ignore file - exclude unnecessary files from build
+
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local uploads (will be created on Railway)
+uploads/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+HELP.md
+readme.md
+
+# Local configuration
+application-local.properties

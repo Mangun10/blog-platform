@@ -3,6 +3,11 @@
 
 [deploy]
   restartPolicyType = "always"
+  healthcheckPath = "/actuator/health"
+  healthcheckTimeout = 60
+  startCommand = "java -Xms256m -Xmx512m -jar target/*.jar"
 
 [env]
   JAVA_VERSION = "17"
+  MAVEN_OPTS = "-Xmx1024m -Dmaven.compile.fork=true -DskipTests=true"
+  JAVA_OPTS = "-Xms256m -Xmx512m"
