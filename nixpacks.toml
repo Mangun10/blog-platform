@@ -7,11 +7,12 @@ nixPkgs = ["jdk17", "maven"]
 cmds = [
   "chmod +x ./mvnw",
   "./mvnw clean package -DskipTests -Dmaven.test.skip=true",
-  "ls -la target/"
+  "ls -la target/",
+  "find target/ -name '*.jar' -type f"
 ]
 
 [start]
-cmd = "./mvnw spring-boot:run -Dspring-boot.run.profiles=production"
+cmd = "java -jar target/blog-platform-0.0.1-SNAPSHOT.jar"
 
 [variables]
 MAVEN_OPTS = "-Xmx1024m"

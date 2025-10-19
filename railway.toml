@@ -3,10 +3,11 @@
 
 [deploy]
   restartPolicyType = "always"
-  healthcheckPath = "/actuator/health"
-  healthcheckTimeout = 90
+  healthcheckPath = "/health"
+  healthcheckTimeout = 120
 
 [env]
   JAVA_VERSION = "17"
-  MAVEN_OPTS = "-Xmx1536m -Dmaven.compile.fork=true"
+  MAVEN_OPTS = "-Xmx1024m -Dmaven.compile.fork=true"
   NIXPACKS_JDK_VERSION = "17"
+  JAVA_OPTS = "-Xms256m -Xmx512m"
