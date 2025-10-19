@@ -1,0 +1,10 @@
+# Nixpacks configuration for optimized Railway builds
+
+[phases.setup]
+nixPkgs = ["jdk17"]
+
+[phases.build]
+cmds = ["mvn clean package -DskipTests -B -q"]
+
+[start]
+cmd = "java -Xms256m -Xmx512m -Djava.security.egd=file:/dev/./urandom -jar target/*.jar"
