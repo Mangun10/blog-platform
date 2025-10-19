@@ -26,7 +26,7 @@ public class HomeController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getDatabaseStatus() {
         Map<String, Object> status = new HashMap<>();
-        
+
         try (Connection connection = dataSource.getConnection()) {
             status.put("status", "connected");
             status.put("database", connection.getMetaData().getDatabaseProductName());
