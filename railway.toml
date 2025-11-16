@@ -1,8 +1,0 @@
-[build]
-  builder = "nixpacks"
-
-[deploy]
-  restartPolicyType = "always"
-
-[env]
-  NODE_ENV = "production"
