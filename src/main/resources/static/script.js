@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
         try {
             const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(postData)
             });
