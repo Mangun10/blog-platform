@@ -418,20 +418,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const renderPostDetailPage = async (post) => {
         const comments = await fetchCommentsByPostId(post.id);
-        const formattedDate = new Date(post.creationDate).toLocaleDateString('en-US', {
-            year: 'numeric', month: 'long', day: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
-
-        // Calculate reading time if not provided
-        let readingTime = '';
-        if (post.readingTime && post.readingTime > 0) {
-            readingTime = `${post.readingTime} min read`;
-        } else if (post.content) {
-            const wordCount = post.content.replace(/<[^>]*>/g, '').split(/\s+/).length;
-            const estimatedTime = Math.max(1, Math.ceil(wordCount / 200));
-            readingTime = `${estimatedTime} min read`;
-        }
+        
+        // Format date properly, handling the field name from your database
+        const dateValue = post.creation_date || post.creationDate;
+        const formattedDate = dateValue ? new Date(dateValue).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        }) : '';
 
         const postContent = document.getElementById('post-content');
         const commentsList = document.getElementById('comments-list');
@@ -443,9 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="article-meta">
                         <div class="article-info">
                             <span>By ${post.author}</span>
-                            <span>•</span>
-                            <span>${formattedDate}</span>
-                            ${readingTime ? `<span>•</span><span>${readingTime}</span>` : ''}
+                            ${formattedDate ? `<span>•</span><span>${formattedDate}</span>` : ''}
                         </div>
                         ${isAdmin ? `
                         <div class="article-actions">
@@ -459,17 +449,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${post.content}
                 </div>
                 <div class="post-actions">
-                    <button class="action-btn" onclick="likePost(${post.id})">
-                        👍 Like (${post.likes || 0})
+                    <button class="action-btn like-btn" onclick="event.stopPropagation(); likePost(${post.id})">
+                        <i class="fas fa-heart"></i> ${post.likes || 0}
                     </button>
-                    <button class="action-btn" onclick="openShareModal(${post.id}, '${post.title.replace(/'/g, "\\'")}', '${(post.summary || '').replace(/'/g, "\\'")}')">
-                        📤 Share (${post.shares || 0})
-                    </button>
-                    <button class="action-btn" onclick="openEmailPostModal(${post.id}, '${post.title.replace(/'/g, "\\'")}')">
-                        📧 Email this post
-                    </button>
-                    <button class="action-btn" onclick="openEmailSubscriptionModal()">
-                        📩 Subscribe to newsletter
+                    <button class="action-btn share-btn" onclick="event.stopPropagation(); openShareModal(${post.id}, '${post.title.replace(/'/g, "\\'")}', '${(post.excerpt || '').replace(/'/g, "\\'")}')">
+                        <i class="fas fa-share-alt"></i> ${post.shares || 0}
                     </button>
                 </div>
             `;
@@ -746,8 +730,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update post card rendering to show featured images
     const renderPostCard = (post) => {
-        const featuredImageHtml = (post.featuredImage && post.featuredImage.trim()) ? 
-            `<img src="${post.featuredImage}" alt="${post.title}" class="post-card-image">` : '';
+        const featuredImageHtml = (post.featured_image && post.featured_image.trim()) ? 
+            `<img src="${post.featured_image}" alt="${post.title}" class="post-card-image">` : '';
         
         // Create excerpt from content if none exists
         let excerpt = '';
@@ -776,38 +760,24 @@ document.addEventListener('DOMContentLoaded', function() {
             excerpt = `A ${post.category || 'blog'} post by ${post.author}. Click to read more...`;
         }
         
-        // Calculate reading time if not provided
-        let readingTime = '';
-        if (post.readingTime && post.readingTime > 0) {
-            readingTime = `${post.readingTime} min read`;
-        } else if (post.content) {
-            const wordCount = post.content.replace(/<[^>]*>/g, '').split(/\s+/).length;
-            const estimatedTime = Math.max(1, Math.ceil(wordCount / 200));
-            readingTime = `${estimatedTime} min read`;
-        }
+        // Format date properly
+        const dateValue = post.creation_date || post.creationDate;
+        const formattedDate = dateValue ? new Date(dateValue).toLocaleDateString() : '';
 
         return `
-            <article class="post-card ${(post.featuredImage && post.featuredImage.trim()) ? 'has-image' : ''}" data-id="${post.id}">
+            <article class="post-card ${(post.featured_image && post.featured_image.trim()) ? 'has-image' : ''}" data-id="${post.id}">
                 ${featuredImageHtml}
                 <div class="post-card-content">
                     <div class="post-category">${post.category || 'Uncategorized'}</div>
                     <h3>${post.title}</h3>
-                    <div class="post-meta">
-                        <span>${new Date(post.creationDate).toLocaleDateString()}</span>
-                        <span class="reading-time">${readingTime}</span>
-                    </div>
+                    ${formattedDate ? `<div class="post-meta"><span>${formattedDate}</span></div>` : ''}
                     <p class="post-excerpt">${excerpt}</p>
                     <div class="post-actions">
-                        <button class="action-btn like-btn" onclick="likePost(${post.id})" title="Like this post">
-                            <i class="fas fa-heart"></i>
-                            <span class="like-count">${post.likes || 0}</span>
+                        <button class="action-btn like-btn" onclick="event.stopPropagation(); likePost(${post.id})" title="Like this post">
+                            <i class="fas fa-heart"></i> ${post.likes || 0}
                         </button>
-                        <button class="action-btn share-btn" onclick="openShareModal(${post.id}, '${post.title.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-share-alt"></i>
-                            <span class="share-count">${post.shares || 0}</span>
-                        </button>
-                        <button class="action-btn email-btn" onclick="openEmailSubscriptionModal()" title="Subscribe for updates">
-                            <i class="fas fa-envelope"></i>
+                        <button class="action-btn share-btn" onclick="event.stopPropagation(); openShareModal(${post.id}, '${post.title.replace(/'/g, "\\'")}')" title="Share this post">
+                            <i class="fas fa-share-alt"></i> ${post.shares || 0}
                         </button>
                     </div>
                 </div>
@@ -1063,14 +1033,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Social media functions
     window.likePost = async function(postId) {
         try {
-            const response = await fetch(`/api/posts/${postId}/like`, {
+            const response = await fetch(`${API_BASE_URL}/posts/${postId}/like`, {
                 method: 'POST'
             });
             
             if (response.ok) {
-                // Refresh the current view to show updated like count
-                await loadPosts();
-                renderApp();
+                // Update the like count in UI without full reload
+                const post = await response.json();
+                
+                // Update all like buttons for this post
+                document.querySelectorAll(`.like-btn[onclick*="${postId}"]`).forEach(btn => {
+                    const countSpan = btn.querySelector('span') || btn.lastChild;
+                    if (countSpan.nodeType === Node.TEXT_NODE) {
+                        countSpan.textContent = ` ${post.likes || 0}`;
+                    } else {
+                        countSpan.textContent = post.likes || 0;
+                    }
+                    btn.classList.add('liked');
+                    setTimeout(() => btn.classList.remove('liked'), 300);
+                });
+                
+                // Also update in allPosts array
+                const postIndex = allPosts.findIndex(p => p.id == postId);
+                if (postIndex !== -1) {
+                    allPosts[postIndex].likes = post.likes;
+                }
             } else {
                 console.error('Failed to like post');
             }

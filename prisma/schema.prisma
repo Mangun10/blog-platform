@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id             BigInt    @id @default(autoincrement())
+  author         String    @db.VarChar(255)
+  content        String?
+  creation_date  DateTime? @default(now())
+  title          String    @db.VarChar(255)
+  category       String    @db.VarChar(255)
+  excerpt        String?   @db.VarChar(500)
+  featured_image String?   @db.VarChar(255)
+  reading_time   Int?
+  likes          Int       @default(0)
+  shares         Int       @default(0)
+  comments       Comment[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id         BigInt    @id @default(autoincrement())
+  author     String?   @db.VarChar(255)
+  content    String    @db.VarChar(255)
+  created_at DateTime? @default(now())
+  post_id    BigInt
+  posts      Post      @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([post_id])
+  @@map("comments")
+}
+
+model Subscriber {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(255)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("subscribers")
+}

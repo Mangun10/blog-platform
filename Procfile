@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT -jar target/blog-platform-0.0.1-SNAPSHOT.jar
+web: npm run start:prod

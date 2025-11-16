@@ -1,18 +1,16 @@
-# Simple Nixpacks configuration for Railway
+# Nixpacks configuration for NestJS on Railway
 
 [phases.setup]
-nixPkgs = ["jdk17", "maven"]
+nixPkgs = ["nodejs-18_x"]
+
+[phases.install]
+cmds = ["npm ci"]
 
 [phases.build]
 cmds = [
-  "chmod +x ./mvnw",
-  "./mvnw clean package -DskipTests -Dmaven.test.skip=true",
-  "ls -la target/",
-  "find target/ -name '*.jar' -type f"
+  "npx prisma generate",
+  "npm run build"
 ]
 
 [start]
-cmd = "java -Dserver.port=${PORT:-8080} -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-default} -jar target/blog-platform-0.0.1-SNAPSHOT.jar"
-
-[variables]
-MAVEN_OPTS = "-Xmx1024m"
+cmd = "npx prisma migrate deploy && npm run start:prod"
