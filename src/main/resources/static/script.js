@@ -424,6 +424,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const formattedDate = dateValue ? new Date(dateValue).toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric'
         }) : '';
+        
+        // Check if post is already liked
+        const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+        const isLiked = likedPosts.includes(post.id);
 
         const postContent = document.getElementById('post-content');
         const commentsList = document.getElementById('comments-list');
@@ -449,11 +453,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${post.content}
                 </div>
                 <div class="post-actions">
-                    <button class="action-btn like-btn" onclick="event.stopPropagation(); likePost(${post.id})">
+                    <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); likePost(${post.id})">
                         <i class="fas fa-heart"></i> ${post.likes || 0}
-                    </button>
-                    <button class="action-btn share-btn" onclick="event.stopPropagation(); openShareModal(${post.id}, '${post.title.replace(/'/g, "\\'")}', '${(post.excerpt || '').replace(/'/g, "\\'")}')">
-                        <i class="fas fa-share-alt"></i> ${post.shares || 0}
                     </button>
                 </div>
             `;
@@ -763,6 +764,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Format date properly
         const dateValue = post.creation_date || post.creationDate;
         const formattedDate = dateValue ? new Date(dateValue).toLocaleDateString() : '';
+        
+        // Check if post is already liked
+        const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+        const isLiked = likedPosts.includes(post.id);
 
         return `
             <article class="post-card ${(post.featured_image && post.featured_image.trim()) ? 'has-image' : ''}" data-id="${post.id}">
@@ -773,11 +778,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${formattedDate ? `<div class="post-meta"><span>${formattedDate}</span></div>` : ''}
                     <p class="post-excerpt">${excerpt}</p>
                     <div class="post-actions">
-                        <button class="action-btn like-btn" onclick="event.stopPropagation(); likePost(${post.id})" title="Like this post">
+                        <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); likePost(${post.id})" title="Like this post">
                             <i class="fas fa-heart"></i> ${post.likes || 0}
-                        </button>
-                        <button class="action-btn share-btn" onclick="event.stopPropagation(); openShareModal(${post.id}, '${post.title.replace(/'/g, "\\'")}')" title="Share this post">
-                            <i class="fas fa-share-alt"></i> ${post.shares || 0}
                         </button>
                     </div>
                 </div>
@@ -1032,6 +1034,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Social media functions
     window.likePost = async function(postId) {
+        // Check if already liked
+        const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+        if (likedPosts.includes(postId)) {
+            showMessage('You already liked this post!');
+            return;
+        }
+        
         try {
             const response = await fetch(`${API_BASE_URL}/posts/${postId}/like`, {
                 method: 'POST'
@@ -1041,16 +1050,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update the like count in UI without full reload
                 const post = await response.json();
                 
+                // Store liked post
+                likedPosts.push(postId);
+                localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
+                
                 // Update all like buttons for this post
                 document.querySelectorAll(`.like-btn[onclick*="${postId}"]`).forEach(btn => {
-                    const countSpan = btn.querySelector('span') || btn.lastChild;
-                    if (countSpan.nodeType === Node.TEXT_NODE) {
-                        countSpan.textContent = ` ${post.likes || 0}`;
-                    } else {
-                        countSpan.textContent = post.likes || 0;
+                    const textNode = Array.from(btn.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+                    if (textNode) {
+                        textNode.textContent = ` ${post.likes || 0}`;
                     }
                     btn.classList.add('liked');
-                    setTimeout(() => btn.classList.remove('liked'), 300);
                 });
                 
                 // Also update in allPosts array
@@ -1058,6 +1068,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (postIndex !== -1) {
                     allPosts[postIndex].likes = post.likes;
                 }
+                
+                showMessage('Post liked!');
             } else {
                 console.error('Failed to like post');
             }

@@ -301,7 +301,7 @@ nav ul li a:hover:after {
 
 /* Hero Section */
 .hero {
-    padding: calc(var(--spacing-xl) * 2) 0 var(--spacing-xl);
+    padding: var(--spacing-lg) 0 var(--spacing-lg);
     border-bottom: var(--border-thin);
 }
 
@@ -309,7 +309,7 @@ nav ul li a:hover:after {
     display: flex;
     align-items: center;
     gap: var(--spacing-xl);
-    min-height: 60vh;
+    min-height: 50vh;
 }
 
 .hero-text {
@@ -909,7 +909,7 @@ footer {
 /* Responsive Design */
 @media screen and (max-width: 992px) {
     .hero-content {
-        flex-direction: column;
+        flex-direction: column-reverse; /* Reverse to show GIF above text */
         text-align: center;
         gap: var(--spacing-lg);
     }
@@ -918,10 +918,9 @@ footer {
         max-width: 100%;
     }
 
-    .hero-gif {
+    .hero-gif, .hero-placeholder {
         width: 150px;
         height: 150px;
-        order: -1; /* Show GIF above text on mobile */
     }
 
     .hero-buttons {
@@ -1610,11 +1609,11 @@ footer {
     color: #e74c3c;
 }
 
-.share-btn:hover {
-    color: #3498db;
+.action-btn.liked {
+    color: #e74c3c;
 }
 
-.action-btn.liked {
+.action-btn.liked i {
     color: #e74c3c;
 }
 
